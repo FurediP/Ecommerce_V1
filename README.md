@@ -165,4 +165,4 @@ MIT (o la que prefieras).
 
 Autor
 -----
-Proyecto didáctico para uso local.
+Fredy David Pastrana Garcia.
