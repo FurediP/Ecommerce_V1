@@ -1,55 +1,35 @@
-E-COMMERCE LOCAL (ROPA) — FastAPI + JWT + MySQL + React (Vite)
-=============================================================
+ECOMMERCE (FASTAPI + MYSQL + REACT/TAILWIND)
+===========================================
 
-Este proyecto implementa un e-commerce simple por microservicios:
-- auth_service: registro/login y emisión de JWT
-- catalog_service: categorías y productos (público + admin)
-- cart_service: carrito por usuario (JWT)
-- order_service: checkout/pedidos (JWT)
-- ecommerce-ui: frontend mínimo con React + Vite
+Proyecto ejemplo de e-commerce de ropa con microservicios en FastAPI y frontend en React + Vite + Tailwind.
+Incluye: Auth (JWT), Catálogo, Carrito con controles (− / + / Quitar / Vaciar) y Checkout (Pedidos).
+Todo preparado para ejecutarse en LOCAL.
 
-Tecnologías
------------
-- Python 3.12, FastAPI, SQLAlchemy, PyMySQL, Pydantic
-- MySQL 8.x
-- Node 18+ / npm
-- Swagger (OpenAPI) para pruebas
-- React + Vite para UI
-
-Estructura
-----------
+----------------------------------------------------------------------
+1) ESTRUCTURA DEL PROYECTO
+----------------------------------------------------------------------
 Ecommerce/
+├─ .env                         -> variables compartidas (DB, JWT, PUERTOS)
+├─ docs/
+│  └─ 01_schema.sql             -> script MySQL (db, usuario, tablas, datos)
 ├─ services/
 │  ├─ auth_service/
 │  ├─ catalog_service/
 │  ├─ cart_service/
 │  └─ order_service/
-├─ scripts/        (SQL para crear/reiniciar BD)
-├─ .env            (variables de entorno)
-├─ requirements.txt
-└─ ecommerce-ui/   (frontend)
+└─ ecommerce-ui/                -> Vite + React + TypeScript + Tailwind
 
-Requisitos
-----------
-- Windows, Python 3.12, MySQL 8.x, Node 18+, npm
-- MySQL local con usuario root para ejecutar scripts
+----------------------------------------------------------------------
+2) REQUISITOS
+----------------------------------------------------------------------
+- Python 3.12
+- MySQL 8.x
+- Node.js 20+ (probado con Node 22) y npm 10+
+- VS Code recomendado
 
-1) Instalación backend
-----------------------
-# en la raíz del proyecto
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-
-2) Base de datos
-----------------
-- Abrir MySQL Workbench y ejecutar:
-  scripts\01_schema.sql   (crea BD ecommerce, usuario ecom_user/ecom_pass, tablas y datos demo)
-- Si necesitas limpiar todo:
-  scripts\00_reset.sql    (DROP + CREATE)
-
-3) Variables de entorno (.env en la raíz)
------------------------------------------
+----------------------------------------------------------------------
+3) ARCHIVO .ENV (RAÍZ)
+----------------------------------------------------------------------
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=ecommerce
@@ -58,111 +38,134 @@ DB_PASS=ecom_pass
 
 JWT_SECRET=change_this_secret
 JWT_ALG=HS256
-JWT_EXPIRE_MIN=120
+JWT_EXPIRE_MIN=120   ; puedes subirlo (ej. 43200 = 30 días)
 
 AUTH_PORT=8001
 CATALOG_PORT=8002
-CART_PORT=8003
-ORDER_PORT=8005   # recomendado: cart en 8004 y orders en 8005
+CART_PORT=8004
+ORDER_PORT=8005
 
-4) Levantar servicios (cada uno en su terminal)
------------------------------------------------
-# Auth
-cd services\auth_service
-uvicorn app.main:app --reload --port 8001
+NOTA: todos los servicios leen este .env y ya tienen CORS para http://localhost:5173 y http://127.0.0.1:5173
 
-# Catálogo
-cd services\catalog_service
-uvicorn app.main:app --reload --port 8002
+----------------------------------------------------------------------
+4) BASE DE DATOS
+----------------------------------------------------------------------
+1. Abrir MySQL Workbench y ejecutar docs/01_schema.sql
+   - Crea la BD ecommerce, el usuario ecom_user/ecom_pass, tablas y datos de ejemplo.
+2. Si tenías una versión anterior, puedes DROPear tablas o la base antes de ejecutar.
 
-# Carrito
-cd services\cart_service
-uvicorn app.main:app --reload --port 8004
+----------------------------------------------------------------------
+5) BACKEND (FASTAPI)
+----------------------------------------------------------------------
+En la raíz:
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  pip install -r requirements.txt
 
-# Pedidos
-cd services\order_service
-uvicorn app.main:app --reload --port 8005
+Levanta CADA servicio desde su carpeta (4 terminales):
 
-Swagger /docs
--------------
-Auth:    http://127.0.0.1:8001/docs
-Catalog: http://127.0.0.1:8002/docs
-Cart:    http://127.0.0.1:8004/docs
-Order:   http://127.0.0.1:8005/docs
+Auth (8001)
+  cd services\auth_service
+  uvicorn app.main:app --reload --port 8001
 
-5) Flujo rápido de pruebas (Swagger)
-------------------------------------
-1. Auth → POST /signup (opcional) y POST /login → copia access_token.
-2. Catalog → (público) GET /products. Con token admin → POST /products:
-   {
-     "category_id": 1,
-     "name": "Camiseta unisex básica negra",
-     "description": "Algodón 100%",
-     "price": 45000,
-     "vat_rate": 19.00,
-     "stock": 120,
-     "size": "M",
-     "image_url": null
-   }
-3. Cart → Authorize con tu token → GET /cart → POST /cart/items:
-   { "product_id": 1, "quantity": 2 }
-4. Order → Authorize con el mismo token → POST /orders/checkout.
-   Luego GET /orders.
+Catálogo (8002)
+  cd services\catalog_service
+  uvicorn app.main:app --reload --port 8002
 
-6) Frontend local (opcional)
-----------------------------
-cd Ecommerce
-npm create vite@latest ecommerce-ui -- --template react
+Carrito (8004)
+  cd services\cart_service
+  uvicorn app.main:app --reload --port 8004
+
+Pedidos (8005)
+  cd services\order_service
+  uvicorn app.main:app --reload --port 8005
+
+Swagger:
+- Auth      -> http://127.0.0.1:8001/docs
+- Catálogo  -> http://127.0.0.1:8002/docs
+- Carrito   -> http://127.0.0.1:8004/docs
+- Pedidos   -> http://127.0.0.1:8005/docs
+
+Notas técnicas:
+- Si ves “InvalidRequestError: The unique() method must be invoked…”, añade .unique() a Result o usa lazy="selectin" en relaciones.
+- Si Pydantic pide email-validator:  pip install email-validator  (o  pip install "pydantic[email]")
+- CORS/OPTIONS 405: ya está configurado CORSMiddleware para localhost:5173 y 127.0.0.1:5173
+
+----------------------------------------------------------------------
+6) FRONTEND (VITE + REACT + TAILWIND)
+----------------------------------------------------------------------
 cd ecommerce-ui
-npm install
+npm i
+npm run dev
+Abrir: http://localhost:5173/
 
-Crear archivo .env.development:
-VITE_AUTH_URL=http://127.0.0.1:8001
-VITE_CATALOG_URL=http://127.0.0.1:8002
-VITE_CART_URL=http://127.0.0.1:8004
-VITE_ORDER_URL=http://127.0.0.1:8005
+Tailwind ya está configurado (ESM):
+- tailwind.config.js incluye plugin @tailwindcss/forms y la paleta "brand".
+- src/index.css aplica tema dark (bg-slate-950, text-slate-100).
 
-npm run dev   (abre http://localhost:5173)
+Funcionalidades:
+- Catálogo con búsqueda y selector de cantidad (− / número / +) antes de “+ Carrito”.
+- Carrito con controles por ítem: − / +, Quitar y Vaciar; muestra neto/IVA/total.
+- Checkout crea pedido; vista de Pedidos lista.
+- Login con JWT guardado en localStorage (Authorization: Bearer).
 
-CORS (ya habilitado en cada servicio):
-- allow_origins = ["http://localhost:5173","http://127.0.0.1:5173"]
+Credenciales de ejemplo (si existen en tu DB):
+  Email: admin@shop.com
+  Pass : Admin123!
 
-7) cURL de ejemplo
-------------------
-# login
-curl -X POST http://127.0.0.1:8001/login ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"admin@shop.com\",\"password\":\"Admin123!\"}"
+----------------------------------------------------------------------
+7) JWT: DURACIÓN Y OPCIONES
+----------------------------------------------------------------------
+Opción rápida (DEV): aumentar JWT_EXPIRE_MIN en .env (ej. 43200 = 30 días) y reiniciar auth_service.
 
-# productos
-curl http://127.0.0.1:8002/products
+Solo DEV: puedes decodificar ignorando exp (options={"verify_exp": false}) para que no caduque; no usar en producción.
 
-# agregar al carrito (reemplaza TOKEN)
-curl -X POST http://127.0.0.1:8004/cart/items ^
-  -H "Authorization: Bearer TOKEN" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"product_id\":1,\"quantity\":2}"
+Producción (recomendado): Access Token corto (15–60 min) + Refresh Token largo (30–60 días) y endpoint /refresh para renovar.
+Para hacerlo robusto: guardar/rotar refresh tokens y usar cookies httpOnly.
 
-# checkout
-curl -X POST http://127.0.0.1:8005/orders/checkout -H "Authorization: Bearer TOKEN"
+----------------------------------------------------------------------
+8) FLUJO DE PRUEBA EN LOCAL
+----------------------------------------------------------------------
+1. MySQL corriendo y DB creada con docs/01_schema.sql
+2. Activar venv e instalar requirements.txt
+3. Levantar servicios: Auth -> Catálogo -> Carrito -> Pedidos
+4. Frontend: npm run dev en ecommerce-ui
+5. En http://localhost:5173:
+   - Inicia sesión
+   - Catálogo: selecciona cantidad y “+ Carrito”
+   - Carrito: ajusta cantidades, Quitar/Vaciar, Checkout
+   - Pedidos: verifica pedido creado
 
-8) Solución de problemas comunes
---------------------------------
-- ModuleNotFoundError: app → ejecuta uvicorn dentro de la carpeta del servicio
-  (p.ej., cd services\auth_service; uvicorn app.main:app --reload --port 8001)
-- ImportError email_validator → pip install email-validator
-- Pydantic "Extra inputs are not permitted" → en config.py usa model_config extra="ignore"
-- SQLAlchemy InvalidRequestError unique() → añade .unique() a los Result y usa lazy="selectin"
-- CORS 404/405 en OPTIONS → verifica CORSMiddleware y origins (localhost y 127.0.0.1 con puerto 5173)
-- 403 vs 401:
-  * 403: no enviaste Authorization (falta token)
-  * 401: token inválido/expirado
-- .env: los servicios leen el .env de la raíz (ruta ajustada en config.py)
+----------------------------------------------------------------------
+9) ENDPOINTS CLAVE
+----------------------------------------------------------------------
+Auth:
+  POST /login  -> { access_token, token_type }
+(Con refresh en prod: POST /refresh -> nuevo access_token)
 
-9) Licencia
------------
-MIT (o la que prefieras).
+Catálogo:
+  GET  /products?q=
 
-Autor
------
-Fredy David Pastrana Garcia.
+Carrito:
+  GET    /cart
+  POST   /cart/items               body { product_id, quantity }
+  PUT    /cart/items/{item_id}     body { quantity } (0 elimina)
+  DELETE /cart/items/{item_id}
+  DELETE /cart/items               (vaciar)
+
+Pedidos:
+  POST /orders/checkout
+  GET  /orders/me
+
+----------------------------------------------------------------------
+10) PROBLEMAS COMUNES
+----------------------------------------------------------------------
+- 401/403: token ausente/expirado -> vuelve a iniciar sesión o aumenta JWT_EXPIRE_MIN.
+- OPTIONS 405: revisar CORSMiddleware y usar http://localhost:5173 (o 127.0.0.1:5173).
+- ModuleNotFoundError: 'app' al iniciar Uvicorn -> ejecuta uvicorn DENTRO de cada carpeta de servicio.
+  Ej.: cd services\auth_service && uvicorn app.main:app --reload --port 8001
+
+----------------------------------------------------------------------
+11) AUTOR
+----------------------------------------------------------------------
+Fredy David Pastrana García.
