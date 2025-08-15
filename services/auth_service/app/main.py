@@ -7,6 +7,14 @@ from .security import verify_password, get_password_hash, create_access_token
 from .config import settings
 
 app = FastAPI(title="Auth Service")
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Crea tablas si no existen (solo dev)
 Base.metadata.create_all(bind=engine)

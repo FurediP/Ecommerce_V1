@@ -10,6 +10,21 @@ from .deps import get_db, get_current_user
 from .config import settings
 
 app = FastAPI(title="Cart Service")
+from fastapi.middleware.cors import CORSMiddleware
+
+# incluye AMBOS orígenes: localhost y 127.0.0.1 (Vite suele usar localhost)
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,   # ⚠️ no uses "*" si allow_credentials=True
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Solo dev: no crea tablas nuevas si ya existen
 Base.metadata.create_all(bind=engine)

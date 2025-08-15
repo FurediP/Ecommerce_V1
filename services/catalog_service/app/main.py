@@ -10,6 +10,21 @@ from .deps import get_db, require_admin
 from .config import settings
 
 app = FastAPI(title="Catalog Service")
+from fastapi.middleware.cors import CORSMiddleware
+
+# incluye AMBOS orígenes: localhost y 127.0.0.1 (Vite suele usar localhost)
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,   # ⚠️ no uses "*" si allow_credentials=True
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # crea tablas si no existen (dev)
 Base.metadata.create_all(bind=engine)
@@ -68,7 +83,7 @@ def list_products(
         stmt = stmt.where(Product.category_id == category_id)
     if q:
         stmt = stmt.where(Product.name.like(f"%{q}%"))
-    rows = db.execute(stmt.order_by(Product.id).offset(skip).limit(limit)).scalars().all()
+    rows = db.execute(stmt.order_by(Product.id).offset(skip).limit(limit)).unique().scalars().all()
     return rows
 
 @app.get("/products/{product_id}", response_model=ProductOut)

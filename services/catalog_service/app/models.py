@@ -16,7 +16,12 @@ class Category(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), unique=True, nullable=False)
     created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
-    products = relationship("Product", back_populates="category", lazy="joined", cascade="all,delete-orphan")
+    products = relationship(
+        "Product",
+        back_populates="category",
+        lazy="selectin",          # <- antes "joined"
+        cascade="all,delete-orphan"
+    )
 
 class Product(Base):
     __tablename__ = "products"
@@ -32,4 +37,4 @@ class Product(Base):
     created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
-    category = relationship("Category", back_populates="products", lazy="joined")
+    category = relationship("Category", back_populates="products", lazy="selectin")
