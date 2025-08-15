@@ -7,31 +7,9 @@ Incluye scripts de self-tests SIN pytest y un agregador para correrlos todos des
 --------------------------------------------------------
 1) ESTRUCTURA
 --------------------------------------------------------
-/docs
-  ├─ 01_schema.sql              (script SQL de MySQL)
-  ├─ uml_db.png / uml_db.pdf    (diagrama UML de BD)
-  ├─ UC-01-Checkout.txt         (caso de uso)
-  └─ tests-summary.txt          (reporte de self-tests; se genera automáticamente)
+! (Estructura.png)
 
-/services
-  ├─ auth_service/              (login/jwt)
-  │    ├─ app/
-  │    └─ run_selftest.py
-  ├─ catalog_service/           (catálogo de productos)
-  │    ├─ app/
-  │    └─ run_selftest.py
-  ├─ cart_service/              (carrito)
-  │    ├─ app/
-  │    └─ run_selftest.py
-  └─ order_service/             (pedidos/checkout)
-       ├─ app/
-       └─ run_selftest.py
-
-/ecommerce-ui                   (frontend React + Vite + Tailwind)
-run_all_selftests.py            (agrega y ejecuta los 4 self-tests)
-smoke_test_local.py             (opcional: prueba end-to-end contra servicios en local)
-README.txt
-.env                            (variables de entorno de ejemplo local)
+! (EcommerceUML.png)
 
 --------------------------------------------------------
 2) REQUISITOS
