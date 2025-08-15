@@ -6,21 +6,7 @@ Incluye: Auth (JWT), Catálogo, Carrito con controles (− / + / Quitar / Vaciar
 Todo preparado para ejecutarse en LOCAL.
 
 ----------------------------------------------------------------------
-1) ESTRUCTURA DEL PROYECTO
-----------------------------------------------------------------------
-Ecommerce/
-├─ .env                         -> variables compartidas (DB, JWT, PUERTOS)
-├─ docs/
-│  └─ 01_schema.sql             -> script MySQL (db, usuario, tablas, datos)
-├─ services/
-│  ├─ auth_service/
-│  ├─ catalog_service/
-│  ├─ cart_service/
-│  └─ order_service/
-└─ ecommerce-ui/                -> Vite + React + TypeScript + Tailwind
-
-----------------------------------------------------------------------
-2) REQUISITOS
+1) REQUISITOS
 ----------------------------------------------------------------------
 - Python 3.12
 - MySQL 8.x
@@ -28,7 +14,7 @@ Ecommerce/
 - VS Code recomendado
 
 ----------------------------------------------------------------------
-3) ARCHIVO .ENV (RAÍZ)
+2) ARCHIVO .ENV (RAÍZ)
 ----------------------------------------------------------------------
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -48,14 +34,14 @@ ORDER_PORT=8005
 NOTA: todos los servicios leen este .env y ya tienen CORS para http://localhost:5173 y http://127.0.0.1:5173
 
 ----------------------------------------------------------------------
-4) BASE DE DATOS
+3) BASE DE DATOS
 ----------------------------------------------------------------------
 1. Abrir MySQL Workbench y ejecutar docs/01_schema.sql
    - Crea la BD ecommerce, el usuario ecom_user/ecom_pass, tablas y datos de ejemplo.
 2. Si tenías una versión anterior, puedes DROPear tablas o la base antes de ejecutar.
 
 ----------------------------------------------------------------------
-5) BACKEND (FASTAPI)
+4) BACKEND (FASTAPI)
 ----------------------------------------------------------------------
 En la raíz:
   python -m venv .venv
@@ -92,7 +78,7 @@ Notas técnicas:
 - CORS/OPTIONS 405: ya está configurado CORSMiddleware para localhost:5173 y 127.0.0.1:5173
 
 ----------------------------------------------------------------------
-6) FRONTEND (VITE + REACT + TAILWIND)
+5) FRONTEND (VITE + REACT + TAILWIND)
 ----------------------------------------------------------------------
 cd ecommerce-ui
 npm i
@@ -114,7 +100,7 @@ Credenciales de ejemplo (si existen en tu DB):
   Pass : Admin123!
 
 ----------------------------------------------------------------------
-7) JWT: DURACIÓN Y OPCIONES
+6) JWT: DURACIÓN Y OPCIONES
 ----------------------------------------------------------------------
 Opción rápida (DEV): aumentar JWT_EXPIRE_MIN en .env (ej. 43200 = 30 días) y reiniciar auth_service.
 
@@ -124,7 +110,7 @@ Producción (recomendado): Access Token corto (15–60 min) + Refresh Token larg
 Para hacerlo robusto: guardar/rotar refresh tokens y usar cookies httpOnly.
 
 ----------------------------------------------------------------------
-8) FLUJO DE PRUEBA EN LOCAL
+7) FLUJO DE PRUEBA EN LOCAL
 ----------------------------------------------------------------------
 1. MySQL corriendo y DB creada con docs/01_schema.sql
 2. Activar venv e instalar requirements.txt
@@ -137,7 +123,7 @@ Para hacerlo robusto: guardar/rotar refresh tokens y usar cookies httpOnly.
    - Pedidos: verifica pedido creado
 
 ----------------------------------------------------------------------
-9) ENDPOINTS CLAVE
+8) ENDPOINTS CLAVE
 ----------------------------------------------------------------------
 Auth:
   POST /login  -> { access_token, token_type }
@@ -158,7 +144,7 @@ Pedidos:
   GET  /orders/me
 
 ----------------------------------------------------------------------
-10) PROBLEMAS COMUNES
+9) PROBLEMAS COMUNES
 ----------------------------------------------------------------------
 - 401/403: token ausente/expirado -> vuelve a iniciar sesión o aumenta JWT_EXPIRE_MIN.
 - OPTIONS 405: revisar CORSMiddleware y usar http://localhost:5173 (o 127.0.0.1:5173).
@@ -166,6 +152,6 @@ Pedidos:
   Ej.: cd services\auth_service && uvicorn app.main:app --reload --port 8001
 
 ----------------------------------------------------------------------
-11) AUTOR
+10) AUTOR
 ----------------------------------------------------------------------
 Fredy David Pastrana García.
