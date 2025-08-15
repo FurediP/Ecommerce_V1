@@ -7,8 +7,32 @@ Incluye scripts de self-tests SIN pytest y un agregador para correrlos todos des
 --------------------------------------------------------
 1) ESTRUCTURA
 --------------------------------------------------------
-(Estructura.png)
-(EcommerceUML.png)
+/docs
+  ├─ 01_schema.sql              (script SQL de MySQL)
+  ├─ uml_db.png / uml_db.pdf    (diagrama UML de BD)
+  ├─ UC-01-Checkout.txt         (caso de uso)
+  └─ tests-summary.txt          (reporte de self-tests; se genera automáticamente)
+
+/services
+  ├─ auth_service/              (login/jwt)
+  │    ├─ app/
+  │    └─ run_selftest.py
+  ├─ catalog_service/           (catálogo de productos)
+  │    ├─ app/
+  │    └─ run_selftest.py
+  ├─ cart_service/              (carrito)
+  │    ├─ app/
+  │    └─ run_selftest.py
+  └─ order_service/             (pedidos/checkout)
+       ├─ app/
+       └─ run_selftest.py
+
+/ecommerce-ui                   (frontend React + Vite + Tailwind)
+run_all_selftests.py            (agrega y ejecuta los 4 self-tests)
+smoke_test_local.py             (opcional: prueba end-to-end contra servicios en local)
+README.txt
+.env                            (variables de entorno de ejemplo local)
+
 --------------------------------------------------------
 2) REQUISITOS
 --------------------------------------------------------
@@ -203,12 +227,12 @@ Ver docs/UC-01-Checkout.txt (describe actores, precondiciones, flujo principal y
 --------------------------------------------------------
 12) CREDENCIALES DE EJEMPLO
 --------------------------------------------------------
-Usuario admin de ejemplo (siembra inicial / script SQL / Uso log in FrontEnd):
-- email: admin@example.com
-- pass: 123
-
+Usuario admin de ejemplo (siembra inicial / script SQL):
+- Email: admin@example.com
+- Password: 123
 
 --------------------------------------------------------
 13) CONTACTO
 --------------------------------------------------------
 Este proyecto fue preparado como prueba técnica. Cualquier duda sobre ejecución, scripts o endpoints, revisar README y /docs de cada servicio (Swagger), o contactar al autor del repositorio.
+
