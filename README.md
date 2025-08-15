@@ -176,7 +176,7 @@ Variables opcionales (en la misma sesión):
 --------------------------------------------------------
 10) CASO DE USO
 --------------------------------------------------------
-Ver docs/UC-01-Checkout.txt (describe actores, precondiciones, flujo principal y alternos).
+Este proyecto incluye el documento docs/UC-01-Checkout.txt: describe el Caso de Uso "Checkout de Pedido" con actores, precondiciones, flujo principal, extensiones/errores, reglas de negocio, contrato de API, ejemplo de respuesta y criterios de aceptación.
 
 --------------------------------------------------------
 11) PROBLEMAS FRECUENTES (TROUBLESHOOTING)
@@ -210,7 +210,6 @@ Usuario admin de ejemplo (siembra inicial / script SQL):
 - Password: 123
 
 --------------------------------------------------------
-13) CONTACTO
+14) CONTACTO
 --------------------------------------------------------
 Este proyecto fue preparado como prueba técnica. Cualquier duda sobre ejecución, scripts o endpoints, revisar README y /docs de cada servicio (Swagger), o contactar al autor del repositorio.
-

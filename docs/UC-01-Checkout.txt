@@ -1,0 +1,159 @@
+UC-01 — Checkout de Pedido
+==========================
+
+1. Nombre
+---------
+Checkout de Pedido (generar pedido a partir del carrito activo).
+
+2. Alcance
+----------
+Sistema de e-commerce de ropa (microservicios: Auth, Catálogo, Carrito, Pedidos).
+
+3. Actores
+----------
+- Actor principal: Cliente (usuario autenticado).
+- Actores de soporte: 
+  - Servicio de Autenticación (valida JWT).
+  - Servicio de Carrito (posee el carrito activo y sus ítems).
+  - Servicio de Pedidos (crea el pedido).
+  - Servicio de Catálogo (provee datos del producto; usado indirectamente).
+  - (Futuro) Pasarela de pago.
+
+4. Propósito
+------------
+Permitir que un cliente convierta su carrito activo en un pedido, calculando totales (neto, IVA) y registrando los ítems con los precios vigentes del carrito.
+
+5. Disparador
+-------------
+El cliente pulsa el botón “Checkout” en la UI del frontend.
+
+6. Precondiciones
+-----------------
+- El cliente está autenticado (portador de un JWT válido).
+- Existe un carrito “active” asociado al cliente con al menos un ítem.
+- Los microservicios y la base de datos están disponibles.
+- (Opcional / futuro) Cada ítem tiene stock suficiente.
+
+7. Postcondiciones (garantías)
+------------------------------
+- Se crea un registro de Pedido con estado inicial `created`.
+- Se crean los ítems del pedido copiando `product_id`, `quantity`, `unit_price` y `vat_rate` del carrito en ese momento.
+- El carrito activo se marca como `converted`.
+- El total del pedido corresponde a la suma de todos los ítems (neto + IVA).
+
+8. Flujo principal (éxito)
+--------------------------
+1. El cliente solicita `POST /orders/checkout` (con `Authorization: Bearer <JWT>`).
+2. El servicio de Pedidos valida el JWT (Auth) y obtiene la identidad del usuario.
+3. El sistema localiza el carrito `active` más reciente del usuario.
+4. El sistema verifica que el carrito tiene ítems; si está vacío, aborta (Extensión E2).
+5. Para cada ítem, calcula:
+   - Neto de línea = `unit_price * quantity`
+   - IVA de línea = `unit_price * (vat_rate/100) * quantity` (si `vat_rate` es nulo, usa 19.00% por defecto)
+6. Suma netos e IVA → total del pedido.
+7. Crea el Pedido (`status="created"`, `total=<calculado>`).
+8. Crea los `OrderItem` para cada ítem del carrito (congelando `unit_price` y `vat_rate` del momento).
+9. Marca el carrito como `converted`.
+10. Devuelve `201 Created` con el `Order` generado (incluye ítems y total).
+11. La UI muestra el número de pedido y el total, y ofrece ver el detalle en “Mis pedidos”.
+
+9. Extensiones (flujos alternos y errores)
+------------------------------------------
+E1. JWT inválido o expirado:
+    - 2a. La validación falla → devolver `401 Unauthorized`.
+
+E2. Carrito vacío o inexistente:
+    - 4a. No hay carrito o `items.length == 0` → devolver `400 Bad Request` con mensaje “Carrito vacío”.
+
+E3. Error de base de datos o conectividad:
+    - En cualquier paso que accede a la BD → `500 Internal Server Error`.
+
+E4. Producto inexistente o inconsistente:
+    - Si algún ítem del carrito referencia un producto inexistente (caso raro) → `409 Conflict` o limpiar el ítem y continuar (según política definida).
+
+E5. Stock insuficiente (si control de stock está habilitado):
+    - Antes del paso 7, si `quantity > stock` para algún producto → `409 Conflict` y no se crea el pedido.
+    - (Nota: en la versión actual de referencia, el checkout **no** descuenta stock.)
+
+10. Reglas de negocio
+---------------------
+- Impuesto (IVA): por defecto 19.00% cuando el producto no define `vat_rate`.
+- Precio congelado: el `unit_price` almacenado en el **carrito** se copia al pedido; cambios posteriores en el catálogo no afectan el pedido ya creado.
+- Ciclo de vida del pedido: `created → paid → shipped → delivered → cancelled`. 
+  - Los cambios de estado son operados vía endpoints de administración.
+- Un carrito con estado `converted` no se reutiliza. Al agregar un nuevo ítem, se genera (o se usa) un carrito `active` nuevo.
+
+11. Requisitos no funcionales
+-----------------------------
+- Seguridad: autenticación por JWT (HS256); expiración configurable vía `JWT_EXPIRE_MIN`.
+- Rendimiento: tiempo de respuesta del endpoint `POST /orders/checkout` ≤ 300 ms en escenarios nominales (sin latencia de pasarela de pago).
+- Confiabilidad: la operación es transaccional; si falla cualquier parte, no debe quedar un pedido parcial.
+- Trazabilidad: el pedido guarda el precio y tasa de IVA por ítem para auditoría.
+
+12. Contrato de API (resumen)
+-----------------------------
+- **POST /orders/checkout**
+  - Headers: `Authorization: Bearer <token>`
+  - Body: (sin cuerpo)
+  - Respuestas:
+    - `201 Created` → cuerpo `OrderOut`
+    - `400 Bad Request` → carrito vacío
+    - `401 Unauthorized` → JWT inválido/ausente
+    - `409 Conflict` → (opcional) stock o inconsistencias
+    - `500 Internal Server Error` → error no controlado
+
+- **GET /orders** (mis pedidos)
+  - Lista los pedidos del usuario autenticado.
+  - `200 OK` → `OrderOut[]`
+
+13. Ejemplo de respuesta (201 Created)
+--------------------------------------
+{
+  "id": 123,
+  "user_id": 1,
+  "total": "92820.00",
+  "status": "created",
+  "items": [
+    {
+      "id": 1,
+      "product_id": 10,
+      "quantity": 2,
+      "unit_price": "39000.00",
+      "vat_rate": "19.00",
+      "product_name": "Camiseta básica blanca"
+    }
+  ]
+}
+
+14. Criterios de aceptación (Gherkin)
+-------------------------------------
+Escenario: Checkout exitoso con un ítem
+  Dado que el usuario está autenticado con un JWT válido
+  Y tiene un carrito activo con 1 ítem (precio 39.000, IVA 19%, cantidad 2)
+  Cuando solicita POST /orders/checkout
+  Entonces el servicio responde 201
+  Y el pedido resultante tiene estado "created"
+  Y el total es 92.820 (39.000 * 2 + 19%)
+
+Escenario: Carrito vacío
+  Dado que el usuario está autenticado
+  Y su carrito activo no tiene ítems
+  Cuando solicita POST /orders/checkout
+  Entonces el servicio responde 400 con el mensaje "Carrito vacío"
+
+Escenario: JWT inválido
+  Dado que el usuario envía un token inválido o expirado
+  Cuando solicita POST /orders/checkout
+  Entonces el servicio responde 401 Unauthorized
+
+15. Trazabilidad con implementación
+-----------------------------------
+- Endpoint implementado: `services/order_service/app/main.py` → `@app.post("/orders/checkout")`.
+- Cálculo de totales: suma de neto e IVA por ítem (usa `vat_rate` del producto o 19% por defecto).
+- Cambio de estado del carrito: `status = "converted"`.
+- Consulta de pedidos del usuario: `GET /orders` (alias opcional `GET /orders/me`).
+
+16. Notas
+---------
+- La integración con pasarela de pagos puede añadirse como paso posterior al “created”, cambiando a “paid” al confirmar el cobro.
+- El control/descarga de stock no está activo en la versión mínima; puede incorporarse antes del paso 7 del flujo principal.
