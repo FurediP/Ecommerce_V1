@@ -48,6 +48,24 @@ export async function addToCart(product_id: number, quantity = 1) {
   });
 }
 
+export async function updateCartItem(item_id: number, quantity: number) {
+  return http(`${CART_URL}/cart/items/${item_id}`, {
+    method: "PUT",
+    body: JSON.stringify({ quantity }),
+  });
+}
+
+// Elimina un ítem del carrito
+export async function removeCartItem(item_id: number) {
+  return http(`${CART_URL}/cart/items/${item_id}`, { method: "DELETE" });
+}
+
+// Vacía completamente el carrito
+export async function clearCart() {
+  return http(`${CART_URL}/cart/items`, { method: "DELETE" });
+}
+
+
 export async function getCart() {
   return http(`${CART_URL}/cart`);
 }

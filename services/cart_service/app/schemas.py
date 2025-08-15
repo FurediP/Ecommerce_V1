@@ -1,7 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from decimal import Decimal
 
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: int = Field(default=1, ge=1, le=9999)
+
+class CartItemUpdate(BaseModel):
+    quantity: int = Field(ge=0, le=9999)  # 0 = eliminar
+    
 class ProductMini(BaseModel):
     id: int
     name: str
