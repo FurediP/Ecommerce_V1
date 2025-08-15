@@ -7,9 +7,9 @@ Incluye scripts de self-tests SIN pytest y un agregador para correrlos todos des
 --------------------------------------------------------
 1) ESTRUCTURA
 --------------------------------------------------------
-! (Estructura.png)
+<img width="714" height="502" alt="Image" src="https://github.com/user-attachments/assets/0f5b088a-4838-4877-b9fe-4a79fdb91403" />
 
-! (EcommerceUML.png)
+<img width="996" height="810" alt="Image" src="https://github.com/user-attachments/assets/4cdd849a-368d-4ce0-bab6-891e66511137" />
 
 --------------------------------------------------------
 2) REQUISITOS
