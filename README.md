@@ -1,171 +1,214 @@
-ECOMMERCE (FASTAPI + MYSQL + REACT/TAILWIND)
-===========================================
+E-COMMERCE (ROPA) — FASTAPI + JWT + MYSQL + REACT (VITE)
+========================================================
 
-Proyecto ejemplo de e-commerce de ropa con microservicios en FastAPI y frontend en React + Vite + Tailwind.
-Incluye: Auth (JWT), Catálogo, Carrito con controles (− / + / Quitar / Vaciar) y Checkout (Pedidos).
-Todo preparado para ejecutarse en LOCAL.
+Microservicios de e-commerce (ropa) con FastAPI + JWT, MySQL y un frontend React (Vite + Tailwind).
+Incluye scripts de self-tests SIN pytest y un agregador para correrlos todos desde la terminal.
 
-----------------------------------------------------------------------
-1) ESTRUCTURA DEL PROYECTO
-----------------------------------------------------------------------
-Ecommerce/
-├─ .env                         -> variables compartidas (DB, JWT, PUERTOS)
-├─ docs/
-│  └─ 01_schema.sql             -> script MySQL (db, usuario, tablas, datos)
-├─ services/
-│  ├─ auth_service/
-│  ├─ catalog_service/
-│  ├─ cart_service/
-│  └─ order_service/
-└─ ecommerce-ui/                -> Vite + React + TypeScript + Tailwind
-
-----------------------------------------------------------------------
+--------------------------------------------------------
+1) ESTRUCTURA
+--------------------------------------------------------
+(Estructura.png)
+(EcommerceUML.png)
+--------------------------------------------------------
 2) REQUISITOS
-----------------------------------------------------------------------
-- Python 3.12
+--------------------------------------------------------
+- Windows 10/11 o similar
+- Python 3.12.x + pip
+- Node.js 18+ (recomendado 20+)
 - MySQL 8.x
-- Node.js 20+ (probado con Node 22) y npm 10+
-- VS Code recomendado
+- (Python) Crear y activar venv:
+    > python -m venv .venv
+    > .\.venv\Scripts\Activate.ps1
+- Instalar dependencias:
+    > pip install -r requirements.txt
 
-----------------------------------------------------------------------
-3) ARCHIVO .ENV (RAÍZ)
-----------------------------------------------------------------------
+--------------------------------------------------------
+3) CONFIGURACIÓN (.env)
+--------------------------------------------------------
+Coloca un archivo .env en la raíz del proyecto:
+
+# MySQL
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=ecommerce
 DB_USER=ecom_user
 DB_PASS=ecom_pass
 
+# JWT
 JWT_SECRET=change_this_secret
 JWT_ALG=HS256
-JWT_EXPIRE_MIN=120   ; puedes subirlo (ej. 43200 = 30 días)
+JWT_EXPIRE_MIN=43200
+# 43200 = 30 días (si cambias aquí, no pongas el comentario en la misma línea)
 
+# Puertos
 AUTH_PORT=8001
 CATALOG_PORT=8002
 CART_PORT=8004
 ORDER_PORT=8005
 
-NOTA: todos los servicios leen este .env y ya tienen CORS para http://localhost:5173 y http://127.0.0.1:5173
+NOTAS:
+- Importa el esquema: docs/01_schema.sql (crea DB y tablas, y usuario ecom_user/ecom_pass).
+- Cada servicio también puede leer un .env local; por defecto apuntan al .env de la raíz.
 
-----------------------------------------------------------------------
-4) BASE DE DATOS
-----------------------------------------------------------------------
-1. Abrir MySQL Workbench y ejecutar docs/01_schema.sql
-   - Crea la BD ecommerce, el usuario ecom_user/ecom_pass, tablas y datos de ejemplo.
-2. Si tenías una versión anterior, puedes DROPear tablas o la base antes de ejecutar.
-
-----------------------------------------------------------------------
-5) BACKEND (FASTAPI)
-----------------------------------------------------------------------
-En la raíz:
-  python -m venv .venv
-  .\.venv\Scripts\Activate.ps1
-  pip install -r requirements.txt
-
-Levanta CADA servicio desde su carpeta (4 terminales):
+--------------------------------------------------------
+4) ARRANQUE RÁPIDO (LOCAL)
+--------------------------------------------------------
+1. Asegúrate de tener la base de datos creada (docs/01_schema.sql).
+2. Activa el venv:
+   > .\.venv\Scripts\Activate.ps1
+3. Levanta los servicios (cada uno en su carpeta):
 
 Auth (8001)
-  cd services\auth_service
-  uvicorn app.main:app --reload --port 8001
+> cd services\auth_service
+> uvicorn app.main:app --reload --port 8001
 
-Catálogo (8002)
-  cd services\catalog_service
-  uvicorn app.main:app --reload --port 8002
+Catalog (8002)
+> cd services\catalog_service
+> uvicorn app.main:app --reload --port 8002
 
-Carrito (8004)
-  cd services\cart_service
-  uvicorn app.main:app --reload --port 8004
+Cart (8004)
+> cd services\cart_service
+> uvicorn app.main:app --reload --port 8004
 
-Pedidos (8005)
-  cd services\order_service
-  uvicorn app.main:app --reload --port 8005
+Order (8005)
+> cd services\order_service
+> uvicorn app.main:app --reload --port 8005
 
-Swagger:
-- Auth      -> http://127.0.0.1:8001/docs
-- Catálogo  -> http://127.0.0.1:8002/docs
-- Carrito   -> http://127.0.0.1:8004/docs
-- Pedidos   -> http://127.0.0.1:8005/docs
-
-Notas técnicas:
-- Si ves “InvalidRequestError: The unique() method must be invoked…”, añade .unique() a Result o usa lazy="selectin" en relaciones.
-- Si Pydantic pide email-validator:  pip install email-validator  (o  pip install "pydantic[email]")
-- CORS/OPTIONS 405: ya está configurado CORSMiddleware para localhost:5173 y 127.0.0.1:5173
-
-----------------------------------------------------------------------
-6) FRONTEND (VITE + REACT + TAILWIND)
-----------------------------------------------------------------------
-cd ecommerce-ui
-npm i
-npm run dev
+4. Frontend (Vite en 5173)
+> cd ecommerce-ui
+> npm install
+> npm run dev
 Abrir: http://localhost:5173/
 
-Tailwind ya está configurado (ESM):
-- tailwind.config.js incluye plugin @tailwindcss/forms y la paleta "brand".
-- src/index.css aplica tema dark (bg-slate-950, text-slate-100).
+APIs (OpenAPI/Swagger):
+- http://127.0.0.1:8001/docs (auth)
+- http://127.0.0.1:8002/docs (catalog)
+- http://127.0.0.1:8004/docs (cart)
+- http://127.0.0.1:8005/docs (order)
 
-Funcionalidades:
-- Catálogo con búsqueda y selector de cantidad (− / número / +) antes de “+ Carrito”.
-- Carrito con controles por ítem: − / +, Quitar y Vaciar; muestra neto/IVA/total.
-- Checkout crea pedido; vista de Pedidos lista.
-- Login con JWT guardado en localStorage (Authorization: Bearer).
+--------------------------------------------------------
+5) ENDPOINTS PRINCIPALES (RESUMEN)
+--------------------------------------------------------
+AUTH
+- POST /login                           -> devuelve JWT (Bearer)
+- GET  /me                              -> usuario autenticado
 
-Credenciales de ejemplo (si existen en tu DB):
-  Email: admin@shop.com
-  Pass : Admin123!
+CATÁLOGO
+- GET  /products?q=&skip=0&limit=50     -> listar/buscar
+- GET  /products/{id}                   -> detalle
 
-----------------------------------------------------------------------
-7) JWT: DURACIÓN Y OPCIONES
-----------------------------------------------------------------------
-Opción rápida (DEV): aumentar JWT_EXPIRE_MIN en .env (ej. 43200 = 30 días) y reiniciar auth_service.
+CARRITO  (requiere Authorization: Bearer <token>)
+- GET    /cart                          -> ver carrito activo
+- POST   /cart/items                    -> body: {product_id, quantity}
+- PUT    /cart/items/{item_id}          -> body: {quantity}
+- DELETE /cart/items/{item_id}          -> eliminar item
+- DELETE /cart/items                    -> vaciar carrito
 
-Solo DEV: puedes decodificar ignorando exp (options={"verify_exp": false}) para que no caduque; no usar en producción.
+PEDIDOS (requiere Authorization)
+- POST /orders/checkout                 -> crea pedido desde carrito
+- GET  /orders                          -> mis pedidos (alias de /orders/me)
+- GET  /orders/{order_id}               -> ver un pedido propio
 
-Producción (recomendado): Access Token corto (15–60 min) + Refresh Token largo (30–60 días) y endpoint /refresh para renovar.
-Para hacerlo robusto: guardar/rotar refresh tokens y usar cookies httpOnly.
+ADMIN (opcional, si activas require_admin)
+- GET  /admin/orders?status=created|... -> listar pedidos
+- PUT  /admin/orders/{id}/status        -> cambiar estado
 
-----------------------------------------------------------------------
-8) FLUJO DE PRUEBA EN LOCAL
-----------------------------------------------------------------------
-1. MySQL corriendo y DB creada con docs/01_schema.sql
-2. Activar venv e instalar requirements.txt
-3. Levantar servicios: Auth -> Catálogo -> Carrito -> Pedidos
-4. Frontend: npm run dev en ecommerce-ui
-5. En http://localhost:5173:
-   - Inicia sesión
-   - Catálogo: selecciona cantidad y “+ Carrito”
-   - Carrito: ajusta cantidades, Quitar/Vaciar, Checkout
-   - Pedidos: verifica pedido creado
+--------------------------------------------------------
+6) FRONTEND (VITE + TAILWIND)
+--------------------------------------------------------
+- Stack: React + Vite + TailwindCSS 3 + @tailwindcss/forms.
+- Variables de API apuntan por defecto a 127.0.0.1 y puertos del .env.
+- Flujo: login → catálogo (busca/añade con qty) → carrito (editar qty, eliminar, vaciar) → checkout → pedidos.
 
-----------------------------------------------------------------------
-9) ENDPOINTS CLAVE
-----------------------------------------------------------------------
+--------------------------------------------------------
+7) SELF-TESTS SIN PYTEST
+--------------------------------------------------------
+Cada servicio tiene un script de prueba autocontenida (SQLite en memoria + TestClient):
+
 Auth:
-  POST /login  -> { access_token, token_type }
-(Con refresh en prod: POST /refresh -> nuevo access_token)
+> cd services\auth_service
+> python run_selftest.py
+Salida esperada: AUTH: PASS
 
-Catálogo:
-  GET  /products?q=
+Catalog:
+> cd services\catalog_service
+> python run_selftest.py
+Salida esperada: CATÁLOGO: PASS
 
-Carrito:
-  GET    /cart
-  POST   /cart/items               body { product_id, quantity }
-  PUT    /cart/items/{item_id}     body { quantity } (0 elimina)
-  DELETE /cart/items/{item_id}
-  DELETE /cart/items               (vaciar)
+Cart:
+> cd services\cart_service
+> python run_selftest.py
+Salida esperada: CARRITO: PASS
 
-Pedidos:
-  POST /orders/checkout
-  GET  /orders/me
+Order:
+> cd services\order_service
+> python run_selftest.py
+Salida esperada: PEDIDOS: PASS
 
-----------------------------------------------------------------------
-10) PROBLEMAS COMUNES
-----------------------------------------------------------------------
-- 401/403: token ausente/expirado -> vuelve a iniciar sesión o aumenta JWT_EXPIRE_MIN.
-- OPTIONS 405: revisar CORSMiddleware y usar http://localhost:5173 (o 127.0.0.1:5173).
-- ModuleNotFoundError: 'app' al iniciar Uvicorn -> ejecuta uvicorn DENTRO de cada carpeta de servicio.
-  Ej.: cd services\auth_service && uvicorn app.main:app --reload --port 8001
+IMPORTANTE
+- No requieren MySQL (usan SQLite en memoria).
+- Sirven como pruebas unitarias mínimas reproducibles sin pytest.
 
-----------------------------------------------------------------------
-11) AUTOR
-----------------------------------------------------------------------
-Fredy David Pastrana García.
+--------------------------------------------------------
+8) EJECUTAR TODOS LOS SELF-TESTS
+--------------------------------------------------------
+En la raíz:
+> python run_all_selftests.py
+
+Genera reporte en:
+- docs/tests-summary.txt
+y devuelve código de salida 0 si todo PASS.
+
+--------------------------------------------------------
+9) SMOKE TEST (OPCIONAL, END-TO-END)
+--------------------------------------------------------
+Con los 4 servicios corriendo en local:
+> python smoke_test_local.py
+
+Prueba: login → listar productos → añadir al carrito → ver carrito → checkout → mis pedidos.
+
+Variables opcionales (en la misma sesión):
+> set TEST_EMAIL=admin@shop.com
+> set TEST_PASSWORD=Admin123!
+
+--------------------------------------------------------
+10) CASO DE USO
+--------------------------------------------------------
+Ver docs/UC-01-Checkout.txt (describe actores, precondiciones, flujo principal y alternos).
+
+--------------------------------------------------------
+11) PROBLEMAS FRECUENTES (TROUBLESHOOTING)
+--------------------------------------------------------
+- 422 en /login durante self-test:
+  Usa un email válido (p.ej. selftest@example.com). EmailStr rechaza dominios no válidos.
+
+- “(trapped) error reading bcrypt version” al iniciar auth:
+  Es un warning de passlib con bcrypt 4.x; no afecta funcionamiento.
+  Opcional: bajar bcrypt a 3.x → pip install "bcrypt<4" y fijar en requirements.
+
+- ImportError: email-validator:
+  > pip install pydantic[email]
+
+- CORS “OPTIONS 405” desde Vite:
+  Asegúrate de tener ambos orígenes permitidos en cada servicio:
+    allow_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+- JWT expira “muy rápido”:
+  Aumenta JWT_EXPIRE_MIN en .env (p.ej. 43200 = 30 días). Evita comentarios en la misma línea.
+  Los services toleran comentarios si usas el validator que limpia “# …”.
+
+- SQLite vs MySQL (en self-tests):
+  Los self-tests usan SQLite y no requieren MySQL. Para uso real, corre contra MySQL.
+
+--------------------------------------------------------
+12) CREDENCIALES DE EJEMPLO
+--------------------------------------------------------
+Usuario admin de ejemplo (siembra inicial / script SQL / Uso log in FrontEnd):
+- email: admin@example.com
+- pass: 123
+
+
+--------------------------------------------------------
+13) CONTACTO
+--------------------------------------------------------
+Este proyecto fue preparado como prueba técnica. Cualquier duda sobre ejecución, scripts o endpoints, revisar README y /docs de cada servicio (Swagger), o contactar al autor del repositorio.

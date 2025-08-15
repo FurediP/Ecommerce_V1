@@ -1,0 +1,36 @@
+Self-tests report — 2025-08-15 13:48:36
+Python 3.12.10 on Windows 11
+Package versions: fastapi=0.116.1, sqlalchemy=2.0.43, pydantic=2.11.7, passlib=1.7.4, httpx=0.28.1
+--------------------------------------------------------------------------------
+=== Auth (auth_service) ===
+[DEBUG] /login intentos -> [('json_email', 200)]
+[DEBUG] token (primeros 20): eyJhbGciOiJIUzI1NiIs...
+[DEBUG] GET /me -> 200
+AUTH: PASS
+
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\fdpas\Desktop\Ecommerce\.venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+
+
+=== Catalog (catalog_service) ===
+CATÁLOGO: PASS (status=200, items=1)
+
+
+=== Cart (cart_service) ===
+CARRITO: PASS
+
+
+=== Order (order_service) ===
+[DEBUG] counts -> users=1, products=1, carts=1, cart_items=1
+[DEBUG] POST /orders/checkout -> 201
+[DEBUG] order: {'id': 1, 'user_id': 1, 'total': '92820.00', 'status': 'created', 'items': [{'id': 1, 'product_id': 1, 'quantity': 2, 'unit_price': '39000.00', 'vat_rate': '19.00', 'product_name': 'Camiseta'}]}
+[DEBUG] GET /orders/me -> 200
+PEDIDOS: PASS
+
+
+--------------------------------------------------------------------------------
+Summary: Auth=PASS, Catalog=PASS, Cart=PASS, Order=PASS
